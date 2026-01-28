@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"money/models"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -30,6 +31,6 @@ func ConnectDatabase() {
 		panic("Failed to connect to database")
 	}
 
-	//db.AutoMigrate(&models.User{})
+	db.AutoMigrate(&models.User{})
 	DB = db
 }
