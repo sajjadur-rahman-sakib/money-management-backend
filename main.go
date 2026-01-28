@@ -1,3 +1,7 @@
 package main
 
-func main() {}
+import "money/command"
+
+func main() {
+	command.Serve()
+}
