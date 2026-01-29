@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"log"
 	"money/models"
 
 	"gorm.io/driver/postgres"
@@ -28,7 +29,7 @@ func ConnectDatabase() {
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		panic("Failed to connect to database")
+		log.Fatal("Failed to connect to database:", err)
 	}
 
 	db.AutoMigrate(&models.User{})
