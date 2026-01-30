@@ -18,6 +18,7 @@ type User struct {
 	IsActive  bool      `json:"is_active" gorm:"default:false"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+	Books     []Book    `json:"books" gorm:"foreignKey:UserID"`
 }
 
 func (u *User) BeforeCreate(tx *gorm.DB) error {
