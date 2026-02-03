@@ -12,7 +12,7 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		authHeader := r.Header.Get("Authorization")
 
 		if authHeader == "" {
-			http.Error(w, "Authorization header required", http.StatusUnauthorized)
+			utils.RespondError(w, http.StatusUnauthorized, "Authorization header required")
 			return
 		}
 
@@ -20,7 +20,7 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		userID, err := utils.ValidateJWT(tokenString)
 
 		if err != nil {
-			http.Error(w, "Invalid token", http.StatusUnauthorized)
+			utils.RespondError(w, http.StatusUnauthorized, "Invalid token")
 			return
 		}
 

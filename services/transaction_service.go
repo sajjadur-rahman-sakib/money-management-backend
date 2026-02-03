@@ -17,10 +17,6 @@ func CreateTransaction(userID, bookID, transactionType string, amount float64, d
 		return nil, errors.New("invalid transaction type")
 	}
 
-	if transactionType == "cash_out" && book.Balance < amount {
-		return nil, errors.New("insufficient balance")
-	}
-
 	transaction := &models.Transaction{
 		BookID:      book.ID,
 		Type:        transactionType,
@@ -79,14 +75,11 @@ func UpdateTransaction(userID, transactionID string, amount float64, description
 
 	delta := amount - transaction.Amount
 	newBalance := book.Balance
-	if transaction.Type == "cash_in" {
+	switch transaction.Type {
+	case "cash_in":
 		newBalance += delta
-	} else if transaction.Type == "cash_out" {
+	case "cash_out":
 		newBalance -= delta
-	}
-
-	if newBalance < 0 {
-		return nil, errors.New("insufficient balance")
 	}
 
 	transaction.Amount = amount
@@ -118,9 +111,10 @@ func DeleteTransaction(userID, transactionID string) error {
 		return errors.New("transaction not found or unauthorized")
 	}
 
-	if transaction.Type == "cash_in" {
+	switch transaction.Type {
+	case "cash_in":
 		book.Balance -= transaction.Amount
-	} else if transaction.Type == "cash_out" {
+	case "cash_out":
 		book.Balance += transaction.Amount
 	}
 

@@ -45,3 +45,27 @@ func ChangePassword(userID, currentPassword, newPassword string) error {
 	user.Password = string(hashedPassword)
 	return config.DB.Save(&user).Error
 }
+
+func UpdateProfile(userID, name, picturePath string) (*models.User, error) {
+	var user models.User
+
+	if err := config.DB.First(&user, "id = ?", userID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("user not found")
+		}
+		return nil, err
+	}
+
+	if name != "" {
+		user.Name = name
+	}
+	if picturePath != "" {
+		user.Picture = picturePath
+	}
+
+	if err := config.DB.Save(&user).Error; err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}

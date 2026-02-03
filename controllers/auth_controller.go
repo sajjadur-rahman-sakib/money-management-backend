@@ -15,13 +15,13 @@ func NewAuthController() *AuthController {
 
 func (authController *AuthController) Signup(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		utils.RespondError(w, http.StatusMethodNotAllowed, "Method not allowed")
 		return
 	}
 
 	err := r.ParseMultipartForm(32 << 20)
 	if err != nil {
-		http.Error(w, "Failed to parse form", http.StatusBadRequest)
+		utils.RespondError(w, http.StatusBadRequest, "Failed to parse form")
 		return
 	}
 
@@ -30,19 +30,19 @@ func (authController *AuthController) Signup(w http.ResponseWriter, r *http.Requ
 	password := r.FormValue("password")
 	file, header, err := r.FormFile("picture")
 	if err != nil {
-		http.Error(w, "Picture required", http.StatusBadRequest)
+		utils.RespondError(w, http.StatusBadRequest, "Picture required")
 		return
 	}
 	defer file.Close()
 
 	picturePath, err := utils.SavePicture(file, header)
 	if err != nil {
-		http.Error(w, "Failed to save picture", http.StatusInternalServerError)
+		utils.RespondError(w, http.StatusInternalServerError, "Failed to save picture")
 		return
 	}
 
 	if err := services.Signup(name, email, password, picturePath); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		utils.RespondError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -52,7 +52,7 @@ func (authController *AuthController) Signup(w http.ResponseWriter, r *http.Requ
 
 func (authController *AuthController) ResendOTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		utils.RespondError(w, http.StatusMethodNotAllowed, "Method not allowed")
 		return
 	}
 
@@ -60,12 +60,12 @@ func (authController *AuthController) ResendOTP(w http.ResponseWriter, r *http.R
 		Email string `json:"email"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		utils.RespondError(w, http.StatusBadRequest, "Invalid JSON")
 		return
 	}
 
 	if err := services.ResendOTP(req.Email); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		utils.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -75,7 +75,7 @@ func (authController *AuthController) ResendOTP(w http.ResponseWriter, r *http.R
 
 func (ac *AuthController) VerifyOTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		utils.RespondError(w, http.StatusMethodNotAllowed, "Method not allowed")
 		return
 	}
 
@@ -84,12 +84,12 @@ func (ac *AuthController) VerifyOTP(w http.ResponseWriter, r *http.Request) {
 		OTP   string `json:"otp"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		utils.RespondError(w, http.StatusBadRequest, "Invalid JSON")
 		return
 	}
 
 	if err := services.VerifyOTP(req.Email, req.OTP); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		utils.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -99,7 +99,7 @@ func (ac *AuthController) VerifyOTP(w http.ResponseWriter, r *http.Request) {
 
 func (authController *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		utils.RespondError(w, http.StatusMethodNotAllowed, "Method not allowed")
 		return
 	}
 
@@ -109,13 +109,13 @@ func (authController *AuthController) Login(w http.ResponseWriter, r *http.Reque
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		utils.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	user, token, err := services.Login(request.Email, request.Password)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusUnauthorized)
+		utils.RespondError(w, http.StatusUnauthorized, err.Error())
 		return
 	}
 
