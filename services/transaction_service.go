@@ -55,9 +55,85 @@ func GetBookDetails(userID, bookID string) (*models.Book, []models.Transaction, 
 	}
 
 	var transactions []models.Transaction
-	if err := config.DB.Where("book_id = ?", bookID).Find(&transactions).Error; err != nil {
+	if err := config.DB.Where("book_id = ?", bookID).Order("created_at desc").Find(&transactions).Error; err != nil {
 		return nil, nil, err
 	}
 
 	return &book, transactions, nil
+}
+
+func UpdateTransaction(userID, transactionID string, amount float64, description string) (*models.Transaction, error) {
+	var transaction models.Transaction
+	if err := config.DB.First(&transaction, "id = ?", transactionID).Error; err != nil {
+		return nil, errors.New("transaction not found")
+	}
+
+	var book models.Book
+	if err := config.DB.Where("id = ? AND user_id = ?", transaction.BookID, userID).First(&book).Error; err != nil {
+		return nil, errors.New("transaction not found or unauthorized")
+	}
+
+	if amount <= 0 {
+		return nil, errors.New("amount must be greater than 0")
+	}
+
+	delta := amount - transaction.Amount
+	newBalance := book.Balance
+	if transaction.Type == "cash_in" {
+		newBalance += delta
+	} else if transaction.Type == "cash_out" {
+		newBalance -= delta
+	}
+
+	if newBalance < 0 {
+		return nil, errors.New("insufficient balance")
+	}
+
+	transaction.Amount = amount
+	transaction.Description = description
+	book.Balance = newBalance
+
+	tx := config.DB.Begin()
+	if err := tx.Save(&transaction).Error; err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+	if err := tx.Save(&book).Error; err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+	tx.Commit()
+
+	return &transaction, nil
+}
+
+func DeleteTransaction(userID, transactionID string) error {
+	var transaction models.Transaction
+	if err := config.DB.First(&transaction, "id = ?", transactionID).Error; err != nil {
+		return errors.New("transaction not found")
+	}
+
+	var book models.Book
+	if err := config.DB.Where("id = ? AND user_id = ?", transaction.BookID, userID).First(&book).Error; err != nil {
+		return errors.New("transaction not found or unauthorized")
+	}
+
+	if transaction.Type == "cash_in" {
+		book.Balance -= transaction.Amount
+	} else if transaction.Type == "cash_out" {
+		book.Balance += transaction.Amount
+	}
+
+	tx := config.DB.Begin()
+	if err := tx.Delete(&transaction).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	if err := tx.Save(&book).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	tx.Commit()
+
+	return nil
 }

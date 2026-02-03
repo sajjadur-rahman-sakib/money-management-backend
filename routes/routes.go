@@ -22,6 +22,10 @@ func SetupRoutes() {
 	http.HandleFunc("/change-password", middleware.AuthMiddleware(userController.ChangePassword))
 	http.HandleFunc("/create-book", middleware.AuthMiddleware(bookController.CreateBook))
 	http.HandleFunc("/get-books", middleware.AuthMiddleware(bookController.GetBooks))
+	http.HandleFunc("/update-book", middleware.AuthMiddleware(bookController.UpdateBook))
+	http.HandleFunc("/delete-book", middleware.AuthMiddleware(bookController.DeleteBook))
 	http.HandleFunc("/create-transaction", middleware.AuthMiddleware(transactionController.CreateTransaction))
 	http.HandleFunc("/book-details", middleware.AuthMiddleware(transactionController.GetBookDetails))
+	http.HandleFunc("/update-transaction", middleware.AuthMiddleware(transactionController.UpdateTransaction))
+	http.HandleFunc("/delete-transaction", middleware.AuthMiddleware(transactionController.DeleteTransaction))
 }
