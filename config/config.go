@@ -14,6 +14,7 @@ type Config struct {
 	DatabasePassword string
 	DatabaseName     string
 	DatabasePort     string
+	SslMode          string
 	GolangPort       string
 	JwtSecret        string
 	SmtpHost         string
@@ -35,6 +36,7 @@ func loadConfig() {
 		DatabasePassword: os.Getenv("DATABASE_PASSWORD"),
 		DatabaseName:     os.Getenv("DATABASE_NAME"),
 		DatabasePort:     os.Getenv("DATABASE_PORT"),
+		SslMode:          os.Getenv("SSL_MODE"),
 		GolangPort:       os.Getenv("GOLANG_PORT"),
 		JwtSecret:        os.Getenv("JWT_SECRET"),
 		SmtpHost:         os.Getenv("SMTP_HOST"),

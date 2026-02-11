@@ -14,12 +14,13 @@ var DB *gorm.DB
 func GetDataSource() string {
 	configuration := GetConfig()
 
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",
 		configuration.DatabaseHost,
 		configuration.DatabaseUsername,
 		configuration.DatabasePassword,
 		configuration.DatabaseName,
 		configuration.DatabasePort,
+		configuration.SslMode,
 	)
 	return dsn
 }
