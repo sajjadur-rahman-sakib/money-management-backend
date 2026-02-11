@@ -90,3 +90,58 @@ func Login(email, password string) (*models.User, string, error) {
 
 	return &user, token, nil
 }
+
+func ForgotPassword(email string) error {
+	var user models.User
+	if err := config.DB.Where("email = ? AND is_active = true", email).First(&user).Error; err != nil {
+		return errors.New("user not found")
+	}
+
+	otp := utils.GenerateOTP()
+	user.OTP = otp
+	user.OTPExpiry = time.Now().Add(5 * time.Minute)
+
+	if err := config.DB.Save(&user).Error; err != nil {
+		return err
+	}
+
+	if err := utils.SendOTP(email, otp); err != nil {
+		return err
+	}
+	return nil
+}
+
+func ForgotOtp(email, otp string) error {
+	var user models.User
+	if err := config.DB.Where("email = ? AND otp = ? AND is_active = true", email, otp).First(&user).Error; err != nil {
+		return errors.New("invalid OTP")
+	}
+
+	if time.Now().After(user.OTPExpiry) {
+		return errors.New("OTP expired")
+	}
+
+	return nil
+}
+
+func ResetPassword(email, otp, newPassword string) error {
+	var user models.User
+	if err := config.DB.Where("email = ? AND otp = ? AND is_active = true", email, otp).First(&user).Error; err != nil {
+		return errors.New("invalid OTP")
+	}
+
+	if time.Now().After(user.OTPExpiry) {
+		return errors.New("OTP expired")
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	user.Password = string(hashedPassword)
+	user.OTP = ""
+	user.OTPExpiry = time.Time{}
+
+	return config.DB.Save(&user).Error
+}
